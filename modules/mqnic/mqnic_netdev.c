@@ -529,7 +529,21 @@ struct net_device *mqnic_create_netdev(struct mqnic_if *interface, int index, in
 	int ret = 0;
 	int k;
 	u32 desc_block_size;
-
+#if defined(FIXED_MAC_ADDRESS)
+    u8 pci_port = 0;
+    u8 mac_list[2][2][6] = {
+        {
+            /* host0 */
+            {0x7a, 0xba, 0x3a, 0xff, 0xb2, 0x0f}, //mac0
+            {0xfa, 0x8b, 0xce, 0x32, 0x83, 0x4e}, //mac1
+            },
+        {
+            /* host1 */
+            {0xfa, 0xa1, 0xc9, 0xba, 0xce, 0xb4}, //mac0
+            {0xa2, 0x2a, 0x53, 0x5d, 0xd9, 0x3f}, //mac1
+            },
+        };
+#endif
 	ndev = alloc_etherdev_mqs(sizeof(*priv), mqnic_res_get_count(interface->txq_res),
 			mqnic_res_get_count(interface->rxq_res));
 	if (!ndev) {
@@ -580,9 +594,22 @@ struct net_device *mqnic_create_netdev(struct mqnic_if *interface, int index, in
 	// set MAC
 	ndev->addr_len = ETH_ALEN;
 
+#if defined(FIXED_MAC_ADDRESS)
+    pci_port = (mdev->pdev->device == 0x1002 ? 1 : 0);
+    memcpy(mdev->mac_list[dev_port], mac_list[pci_port][dev_port] , ETH_ALEN);
+#endif
+
 	if (dev_port >= mdev->mac_count) {
+#if defined(FIXED_MAC_ADDRESS)
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)
+        eth_hw_addr_set(ndev, mdev->mac_list[dev_port]);
+	#else
+        memcpy(ndev->dev_addr, mdev->mac_list[dev_port], ETH_ALEN);
+	#endif
+#else
 		dev_warn(dev, "Exhausted permanent MAC addresses; using random MAC");
 		eth_hw_addr_random(ndev);
+#endif
 	} else {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)
 		eth_hw_addr_set(ndev, mdev->mac_list[dev_port]);

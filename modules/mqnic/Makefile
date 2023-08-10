@@ -26,6 +26,9 @@ mqnic-y += mqnic_cq.o
 mqnic-y += mqnic_eq.o
 mqnic-y += mqnic_ethtool.o
 
+# 固定MAC宏
+EXTRA_CFLAGS += -DFIXED_MAC_ADDRESS
+
 ifneq ($(DEBUG),)
 ccflags-y += -DDEBUG
 endif
@@ -37,6 +40,8 @@ ifneq ($(KERNEL_SRC),)
 # PetaLinux/Yocto for example
 KDIR ?= $(KERNEL_SRC)
 endif
+
+
 
 KDIR ?= /lib/modules/$(shell uname -r)/build
 
