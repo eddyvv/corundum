@@ -36,11 +36,14 @@ module_param_named(link_status_poll, mqnic_link_status_poll, uint, 0444);
 MODULE_PARM_DESC(link_status_poll,
 		 "link status polling interval, in ms (default: 1000; 0 to turn off)");
 
-
+/* XTIC_NIC_VENDOR XTIC_NIC_HOSTx_DEVICE定义在mqnic_hw.h中 */
 #ifdef CONFIG_PCI
 static const struct pci_device_id mqnic_pci_id_table[] = {
-	{PCI_DEVICE(0x1234, 0x1001)},
-	{PCI_DEVICE(0x1234, 0x1002)},
+	{PCI_DEVICE(XTIC_NIC_VENDOR, XTIC_NIC_HOST0_DEVICE)},
+	{PCI_DEVICE(XTIC_NIC_VENDOR, XTIC_NIC_HOST1_DEVICE)},
+    {PCI_DEVICE(XTIC_NIC_VENDOR, XTIC_NIC_HOST2_DEVICE)},
+	{PCI_DEVICE(XTIC_NIC_VENDOR, XTIC_NIC_HOST3_DEVICE)},
+    {PCI_DEVICE(XTIC_NIC_VENDOR, 0x9038)},
 	{0 /* end */ }
 };
 

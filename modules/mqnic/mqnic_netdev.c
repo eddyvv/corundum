@@ -520,6 +520,39 @@ static void mqnic_link_status_timeout(struct timer_list *timer)
 	mod_timer(&priv->link_status_timer, jiffies + msecs_to_jiffies(mqnic_link_status_poll));
 }
 
+#if defined(FIXED_MAC_ADDRESS)
+static int mqnic_get_host(struct pci_dev *pdev)
+{
+    int pci_port;
+
+    switch(pdev->device)
+    {
+        case XTIC_NIC_HOST0_DEVICE:
+            pci_port = 0;
+        break;
+
+        case XTIC_NIC_HOST1_DEVICE:
+            pci_port = 1;
+        break;
+
+        case XTIC_NIC_HOST2_DEVICE:
+            pci_port = 2;
+        break;
+
+        case XTIC_NIC_HOST3_DEVICE:
+            pci_port = 3;
+        break;
+
+        default:
+            pci_port = 0;
+        break;
+
+
+    }
+
+    return pci_port;
+}
+#endif
 struct net_device *mqnic_create_netdev(struct mqnic_if *interface, int index, int dev_port)
 {
 	struct mqnic_dev *mdev = interface->mdev;
@@ -531,7 +564,7 @@ struct net_device *mqnic_create_netdev(struct mqnic_if *interface, int index, in
 	u32 desc_block_size;
 #if defined(FIXED_MAC_ADDRESS)
     u8 pci_port = 0;
-    u8 mac_list[2][2][6] = {
+    u8 mac_list[4][2][6] = {
         {
             /* host0 */
             {0x7a, 0xba, 0x3a, 0xff, 0xb2, 0x0f}, //mac0
@@ -541,6 +574,18 @@ struct net_device *mqnic_create_netdev(struct mqnic_if *interface, int index, in
             /* host1 */
             {0xfa, 0xa1, 0xc9, 0xba, 0xce, 0xb4}, //mac0
             {0xa2, 0x2a, 0x53, 0x5d, 0xd9, 0x3f}, //mac1
+            },
+
+        {
+            /* host2 */
+            {0x7a, 0x16, 0x6b, 0x43, 0x5d, 0xe3}, //mac0
+            {0xb2, 0xa2, 0xd1, 0xe0, 0xd5, 0x48}, //mac1
+            },
+
+        {
+            /* host3 */
+            {0xb6, 0xbd, 0x37, 0x6b, 0xca, 0x84}, //mac0
+            {0xc2, 0xe7, 0x2e, 0x62, 0xb6, 0x98}, //mac1
             },
         };
 #endif
@@ -595,7 +640,7 @@ struct net_device *mqnic_create_netdev(struct mqnic_if *interface, int index, in
 	ndev->addr_len = ETH_ALEN;
 
 #if defined(FIXED_MAC_ADDRESS)
-    pci_port = (mdev->pdev->device == 0x1002 ? 1 : 0);
+    pci_port = mqnic_get_host(mdev->pdev);
     memcpy(mdev->mac_list[dev_port], mac_list[pci_port][dev_port] , ETH_ALEN);
 #endif
 
